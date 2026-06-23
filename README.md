@@ -174,6 +174,12 @@ Since zzz is a static website, no build process is required.
 
 ---
 
+## Live Demo
+
+```bash
+https://zzz-lang.netlify.app/
+```
+
 ## License
 
 MIT
