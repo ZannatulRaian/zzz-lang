@@ -1,6 +1,8 @@
-# zzz-lang 😴
+<h1 align="center">zzz 😴</h1>
 
+<p align="center">
 A deliberately lazy programming language that does just enough.
+</p>
 
 zzz is a lightweight browser-based programming language featuring a custom interpreter, interactive terminal, and guided learning experience.
 
