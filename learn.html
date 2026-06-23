@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zzz — learn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0c0b10;
+            --bg2: #10101a;
+            --card: #161522;
+            --border: #252336;
+            --fg: #ddd8cf;
+            --muted: #706c82;
+            --accent: #d4943a;
+            --accent-dim: rgba(212,148,58,0.08);
+            --accent-mid: rgba(212,148,58,0.16);
+            --green: #6db99a;
+            --lavender: #b8a9d4;
+            --red: #c75050;
+            --code-bg: #0e0d16;
+            --dim: #45425a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .serif { font-family: 'Instrument Serif', serif; }
+        .mono { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        /* Top bar */
+        .topbar {
+            height: 50px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
+            background: #131220;
+            z-index: 50;
+        }
+        .topbar a {
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .topbar a:hover { color: var(--fg); }
+        .topbar .on { color: var(--accent); }
+
+        /* Layout */
+        .layout { flex: 1; display: flex; overflow: hidden; }
+
+        /* Sidebar */
+        .side {
+            width: 256px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            background: var(--bg2);
+            padding: 14px 0;
+        }
+        .sb-sec { margin-bottom: 2px; }
+        .sb-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 18px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .sb-hd:hover { background: rgba(212,148,58,0.04); }
+        .sb-hd h4 {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+        }
+        .sb-hd .arr {
+            font-size: 8px;
+            color: var(--dim);
+            transition: transform 0.3s;
+        }
+        .sb-hd.open .arr { transform: rotate(90deg); }
+        .sb-bd { overflow: hidden; max-height: 0; transition: max-height 0.4s ease; }
+        .sb-bd.open { max-height: 500px; }
+        .sb-row {
+            padding: 4px 18px 4px 30px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+            cursor: default;
+        }
+        .sb-row:hover { color: var(--fg); }
+        .sb-kw {
+            font-family: 'Fira Code', monospace;
+            color: var(--accent);
+            font-size: 11px;
+            min-width: 100px;
+        }
+        .sb-ds { font-size: 10px; color: var(--dim); line-height: 1.3; }
+        .sb-div { height: 1px; background: var(--border); margin: 10px 18px; }
+
+        /* Content */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 44px 48px;
+        }
+        .lesson {
+            margin-bottom: 68px;
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .lesson.vis { opacity: 1; transform: translateY(0); }
+        .l-num {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: block;
+        }
+        .l-title { font-size: 1.75rem; margin-bottom: 14px; line-height: 1.2; }
+        .l-desc {
+            color: var(--muted);
+            font-size: 0.93rem;
+            line-height: 1.75;
+            margin-bottom: 26px;
+            max-width: 500px;
+        }
+        .l-code {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+        .lcode-hd {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255,255,255,0.01);
+        }
+        .dot { width: 9px; height: 9px; border-radius: 50%; }
+        .dot.r { background: var(--red); }
+        .dot.y { background: var(--accent); }
+        .dot.g { background: var(--green); }
+        .lcode-bd {
+            padding: 16px 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 2;
+            overflow-x: auto;
+        }
+        .sk { color: var(--accent); font-weight: 500; }
+        .ss { color: var(--green); }
+        .sn { color: var(--lavender); }
+        .sc { color: var(--muted); font-style: italic; }
+        .sv { color: var(--fg); }
+        .so { color: #d4836a; }
+        .try-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--accent-dim);
+            border: 1px solid rgba(212,148,58,0.15);
+            color: var(--accent);
+            font-family: 'DM Sans', sans-serif;
+        }
+        .try-btn:hover {
+            background: var(--accent-mid);
+            border-color: rgba(212,148,58,0.3);
+            transform: translateY(-1px);
+        }
+        .l-note {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-left: 2px solid var(--border);
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        /* Right terminal */
+        .rterm {
+            width: 360px;
+            flex-shrink: 0;
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            background: var(--bg2);
+        }
+        .rterm-bar {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .rterm-bar span {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+        }
+        .rterm-bar button {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 3px 10px;
+            color: var(--muted);
+            font-size: 10px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: color 0.2s;
+        }
+        .rterm-bar button:hover { color: var(--fg); }
+        .rterm-out {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 14px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.85;
+        }
+        .rterm-in {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px 14px;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .rterm-pr {
+            color: var(--accent);
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            user-select: none;
+        }
+        .rterm-in input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--fg);
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            caret-color: var(--accent);
+            padding: 0;
+            margin-left: 8px;
+        }
+        .t-echo { color: var(--muted); }
+        .t-out { color: var(--green); }
+        .t-err { color: var(--red); }
+        .t-dim { color: var(--dim); }
+
+        /* Mobile sidebar toggle */
+        .sb-tog {
+            display: none;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 10px;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .sb-ov {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 40;
+        }
+
+        @media (max-width: 1100px) {
+            .rterm { width: 280px; }
+            .content { padding: 32px 28px; }
+        }
+        @media (max-width: 860px) {
+            .side {
+                position: fixed;
+                left: -270px;
+                top: 50px;
+                bottom: 0;
+                z-index: 45;
+                transition: left 0.3s ease;
+                width: 256px;
+            }
+            .side.open { left: 0; }
+            .sb-tog { display: block; }
+            .sb-ov.show { display: block; }
+            .rterm { display: none; }
+            .content { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+    <div style="display:flex;align-items:center;gap:16px">
+        <button class="sb-tog" id="sbTog" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+        <a href="index.html" style="text-decoration:none"><span class="serif" style="font-size:1.2rem;color:var(--accent)">zzz</span></a>
+        <a href="learn.html" class="on">Learn</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px">
+        <a href="index.html">home</a>
+        <a href="terminal.html">terminal</a>
+    </div>
+</div>
+
+<div class="sb-ov" id="sbOv"></div>
+
+<!-- Main layout -->
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="side" id="side">
+        <div class="sb-sec">
+            <div class="sb-hd open" data-t="sb-basics">
+                <h4>Basics</h4>
+                <i class="fa-solid fa-chevron-right arr"></i>
+            </div>
+            <div class="sb-bd open" id="sb-basics">
+                <div class="sb-row"><span class="sb-kw">zzz</span><span class="sb-ds">start program</span></div>
+                <div class="sb-row"><span class="sb-kw">nap</span><span class="sb-ds">end program</span></div>
+                <div class="sb-row"><span class="sb-kw">yawn</span><span class="sb-ds">print output</span></div>
+                <div class="sb-row"><span class="sb-kw">//</span><span class="sb-ds">comment</span></div>
+            </div>
+        </div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">
+            <div class="sb-hd open" data-t="sb-vals">
+                <h4>Values</h4>
+                <i class="fa-solid fa-chevron-right arr"></i>
+            </div>
+            <div class="sb-bd open" id="sb-vals">
+                <div class="sb-row"><span class="sb-kw">"text"</span><span class="sb-ds">string</span></div>
+                <div class="sb-row"><span class="sb-kw">42</span><span class="sb-ds">number</span></div>
+                <div class="sb-row"><span class="sb-kw">ya</span><span class="sb-ds">true</span></div>
+                <div class="sb-row"><span class="sb-kw">nah</span><span class="sb-ds">false</span></div>
+                <div class="sb-row"><span class="sb-kw">idk</span><span class="sb-ds">null</span></div>
+            </div>
+        </div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">
+            <div class="sb-hd open" data-t="sb-ops">
+                <h4>Operators</h4>
+                <i class="fa-solid fa-chevron-right arr"></i>
+            </div>
+            <div class="sb-bd open" id="sb-ops">
+                <div class="sb-row"><span class="sb-kw">+</span><span class="sb-ds">add / concat</span></div>
+                <div class="sb-row"><span class="sb-kw">- * /</span><span class="sb-ds">math</span></div>
+                <div class="sb-row"><span class="sb-kw">> < >= <=</span><span class="sb-ds">compare</span></div>
+                <div class="sb-row"><span class="sb-kw">== !=</span><span class="sb-ds">equality</span></div>
+            </div>
+        </div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">
+            <div class="sb-hd open" data-t="sb-flow">
+                <h4>Control flow</h4>
+                <i class="fa-solid fa-chevron-right arr"></i>
+            </div>
+            <div class="sb-bd open" id="sb-flow">
+                <div class="sb-row"><span class="sb-kw">if u care</span><span class="sb-ds">if statement</span></div>
+                <div class="sb-row"><span class="sb-kw">dont bother</span><span class="sb-ds">else</span></div>
+                <div class="sb-row"><span class="sb-kw">whatever</span><span class="sb-ds">end if</span></div>
+                <div class="sb-row"><span class="sb-kw">while still awake</span><span class="sb-ds">while loop</span></div>
+                <div class="sb-row"><span class="sb-kw">im done</span><span class="sb-ds">end loop</span></div>
+                <div class="sb-row"><span class="sb-kw">im out</span><span class="sb-ds">break</span></div>
+            </div>
+        </div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">
+            <div class="sb-hd open" data-t="sb-data">
+                <h4>Data</h4>
+                <i class="fa-solid fa-chevron-right arr"></i>
+            </div>
+            <div class="sb-bd open" id="sb-data">
+                <div class="sb-row"><span class="sb-kw">name = val</span><span class="sb-ds">variable</span></div>
+                <div class="sb-row"><span class="sb-kw">[1, 2, 3]</span><span class="sb-ds">array literal</span></div>
+                <div class="sb-row"><span class="sb-kw">arr[i]</span><span class="sb-ds">array access</span></div>
+            </div>
+        </div>
+        <div class="sb-div"></div>
+        <div class="sb-sec">
+            <div class="sb-hd open" data-t="sb-fn">
+                <h4>Functions</h4>
+                <i class="fa-solid fa-chevron-right arr"></i>
+            </div>
+            <div class="sb-bd open" id="sb-fn">
+                <div class="sb-row"><span class="sb-kw">whenever name</span><span class="sb-ds">define function</span></div>
+                <div class="sb-row"><span class="sb-kw">thats it</span><span class="sb-ds">end function</span></div>
+                <div class="sb-row"><span class="sb-kw">do name</span><span class="sb-ds">call function</span></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Content -->
+    <div class="content" id="lessonContent">
+
+        <!-- 01 Variables -->
+        <div class="lesson" data-code="zzz&#10;&#10;name = &quot;world&quot;&#10;age = 25&#10;tired = ya&#10;nothing = idk&#10;&#10;yawn &quot;hello &quot; + name&#10;yawn &quot;age: &quot; + age&#10;yawn tired&#10;yawn nothing&#10;&#10;nap">
+            <span class="l-num">01</span>
+            <h2 class="l-title serif">Variables</h2>
+            <p class="l-desc">No <code class="mono" style="font-size:12px;color:var(--accent)">let</code>, no <code class="mono" style="font-size:12px;color:var(--accent)">const</code>, no <code class="mono" style="font-size:12px;color:var(--accent)">var</code>. Just name something and give it a value. zzz doesn&rsquo;t care what type it is.</p>
+            <div class="l-code">
+                <div class="lcode-hd"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span style="font-size:10px;color:var(--muted);margin-left:8px">variables.meh</span></div>
+                <div class="lcode-bd mono"><span class="sk">zzz</span>
+
+<span class="sc">// just name it. that's it.</span>
+<span class="sv">name</span> <span class="so">=</span> <span class="ss">"world"</span>
+<span class="sv">age</span> <span class="so">=</span> <span class="sn">25</span>
+<span class="sv">tired</span> <span class="so">=</span> <span class="sk">ya</span>
+<span class="sv">nothing</span> <span class="so">=</span> <span class="sk">idk</span>
+
+<span class="sk">yawn</span> <span class="ss">"hello "</span> <span class="so">+</span> <span class="sv">name</span>
+<span class="sk">yawn</span> <span class="ss">"age: "</span> <span class="so">+</span> <span class="sv">age</span>
+<span class="sk">yawn</span> <span class="sv">tired</span>
+<span class="sk">yawn</span> <span class="sv">nothing</span>
+
+<span class="sk">nap</span></div>
+            </div>
+            <button class="try-btn" onclick="loadLesson(this)"><i class="fa-solid fa-terminal" style="font-size:11px"></i> Try in terminal</button>
+            <div class="l-note">You can reassign variables anytime. zzz won&rsquo;t stop you. It&rsquo;s not your parent.</div>
+        </div>
+
+        <!-- 02 If Statements -->
+        <div class="lesson" data-code="zzz&#10;&#10;energy = 3&#10;&#10;if u care energy > 5&#10;  yawn &quot;let's do this&quot;&#10;dont bother&#10;  yawn &quot;maybe later&quot;&#10;  yawn &quot;...or never&quot;&#10;whatever&#10;&#10;nap">
+            <span class="l-num">02</span>
+            <h2 class="l-title serif">If Statements</h2>
+            <p class="l-desc">Sometimes you need to make a decision. Use <code class="mono" style="font-size:12px;color:var(--accent)">if u care</code> to check something. Else? <code class="mono" style="font-size:12px;color:var(--accent)">dont bother</code>. End it all with <code class="mono" style="font-size:12px;color:var(--accent)">whatever</code>.</p>
+            <div class="l-code">
+                <div class="lcode-hd"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span style="font-size:10px;color:var(--muted);margin-left:8px">decision.meh</span></div>
+                <div class="lcode-bd mono"><span class="sk">zzz</span>
+
+<span class="sv">energy</span> <span class="so">=</span> <span class="sn">3</span>
+
+<span class="sk">if u care</span> <span class="sv">energy</span> <span class="so">></span> <span class="sn">5</span>
+  <span class="sk">yawn</span> <span class="ss">"let's do this"</span>
+<span class="sk">dont bother</span>
+  <span class="sk">yawn</span> <span class="ss">"maybe later"</span>
+  <span class="sk">yawn</span> <span class="ss">"...or never"</span>
+<span class="sk">whatever</span>
+
+<span class="sk">nap</span></div>
+            </div>
+            <button class="try-btn" onclick="loadLesson(this)"><i class="fa-solid fa-terminal" style="font-size:11px"></i> Try in terminal</button>
+            <div class="l-note">You can nest <code class="mono" style="font-size:12px;color:var(--accent)">if u care</code> blocks inside each other. zzz handles the nesting. You handle the existential dread.</div>
+        </div>
+
+        <!-- 03 Arrays -->
+        <div class="lesson" data-code="zzz&#10;&#10;snacks = [&quot;chips&quot;, &quot;cookies&quot;, &quot;soda&quot;]&#10;&#10;yawn snacks[0]&#10;yawn snacks[1]&#10;yawn snacks[2]&#10;&#10;nap">
+            <span class="l-num">03</span>
+            <h2 class="l-title serif">Arrays</h2>
+            <p class="l-desc">Need to store multiple things? Wrap them in square brackets. Access with index starting from zero. That part isn&rsquo;t lazy. Sorry.</p>
+            <div class="l-code">
+                <div class="lcode-hd"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span style="font-size:10px;color:var(--muted);margin-left:8px">snacks.meh</span></div>
+                <div class="lcode-bd mono"><span class="sk">zzz</span>
+
+<span class="sv">snacks</span> <span class="so">=</span> [<span class="ss">"chips"</span>, <span class="ss">"cookies"</span>, <span class="ss">"soda"</span>]
+
+<span class="sk">yawn</span> <span class="sv">snacks</span>[<span class="sn">0</span>]
+<span class="sk">yawn</span> <span class="sv">snacks</span>[<span class="sn">1</span>]
+<span class="sk">yawn</span> <span class="sv">snacks</span>[<span class="sn">2</span>]
+
+<span class="sk">nap</span></div>
+            </div>
+            <button class="try-btn" onclick="loadLesson(this)"><i class="fa-solid fa-terminal" style="font-size:11px"></i> Try in terminal</button>
+            <div class="l-note">Arrays can hold mixed types: numbers, strings, booleans, even other arrays. zzz is too tired to judge.</div>
+        </div>
+
+        <!-- 04 Loops -->
+        <div class="lesson" data-code="zzz&#10;&#10;i = 0&#10;while still awake i < 5&#10;  yawn &quot;counting... &quot; + i&#10;  i = i + 1&#10;im done&#10;&#10;yawn &quot;finally. nap time.&quot;&#10;&#10;nap">
+            <span class="l-num">04</span>
+            <h2 class="l-title serif">Loops</h2>
+            <p class="l-desc">When doing something once isn&rsquo;t enough, use <code class="mono" style="font-size:12px;color:var(--accent)">while still awake</code>. It keeps going until the condition is false. End with <code class="mono" style="font-size:12px;color:var(--accent)">im done</code>.</p>
+            <div class="l-code">
+                <div class="lcode-hd"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span style="font-size:10px;color:var(--muted);margin-left:8px">loop.meh</span></div>
+                <div class="lcode-bd mono"><span class="sk">zzz</span>
+
+<span class="sv">i</span> <span class="so">=</span> <span class="sn">0</span>
+<span class="sk">while still awake</span> <span class="sv">i</span> <span class="so"><</span> <span class="sn">5</span>
+  <span class="sk">yawn</span> <span class="ss">"counting... "</span> <span class="so">+</span> <span class="sv">i</span>
+  <span class="sv">i</span> <span class="so">=</span> <span class="sv">i</span> <span class="so">+</span> <span class="sn">1</span>
+<span class="sk">im done</span>
+
+<span class="sk">yawn</span> <span class="ss">"finally. nap time."</span>
+
+<span class="sk">nap</span></div>
+            </div>
+            <button class="try-btn" onclick="loadLesson(this)"><i class="fa-solid fa-terminal" style="font-size:11px"></i> Try in terminal</button>
+            <div class="l-note">Use <code class="mono" style="font-size:12px;color:var(--accent)">im out</code> inside a loop to break early. Like leaving a meeting that should&rsquo;ve been an email.</div>
+        </div>
+
+        <!-- 05 Functions -->
+        <div class="lesson" data-code="zzz&#10;&#10;whenever greet&#10;  yawn &quot;hey there&quot;&#10;  yawn &quot;welcome to zzz&quot;&#10;thats it&#10;&#10;do greet&#10;&#10;do greet&#10;&#10;nap">
+            <span class="l-num">05</span>
+            <h2 class="l-title serif">Functions</h2>
+            <p class="l-desc">Want to reuse code? Define with <code class="mono" style="font-size:12px;color:var(--accent)">whenever name</code>, end with <code class="mono" style="font-size:12px;color:var(--accent)">thats it</code>, call with <code class="mono" style="font-size:12px;color:var(--accent)">do name</code>. Functions share all variables globally &mdash; no parameters, no return values. Just vibes.</p>
+            <div class="l-code">
+                <div class="lcode-hd"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span style="font-size:10px;color:var(--muted);margin-left:8px">func.meh</span></div>
+                <div class="lcode-bd mono"><span class="sk">zzz</span>
+
+<span class="sk">whenever</span> <span class="sv">greet</span>
+  <span class="sk">yawn</span> <span class="ss">"hey there"</span>
+  <span class="sk">yawn</span> <span class="ss">"welcome to zzz"</span>
+<span class="sk">thats it</span>
+
+<span class="sk">do</span> <span class="sv">greet</span>
+
+<span class="sk">do</span> <span class="sv">greet</span>
+
+<span class="sk">nap</span></div>
+            </div>
+            <button class="try-btn" onclick="loadLesson(this)"><i class="fa-solid fa-terminal" style="font-size:11px"></i> Try in terminal</button>
+            <div class="l-note">Functions must be defined before they&rsquo;re called. Even zzz has limits.</div>
+        </div>
+
+    </div>
+
+    <!-- Right terminal -->
+    <div class="rterm" id="rterm">
+        <div class="rterm-bar">
+            <span>Terminal</span>
+            <button onclick="clearRT()">clear</button>
+        </div>
+        <div class="rterm-out" id="rtOut"></div>
+        <div class="rterm-in">
+            <span class="rterm-pr">zzz &gt;</span>
+            <input type="text" id="rtIn" autocomplete="off" spellcheck="false" aria-label="Run terminal">
+        </div>
+    </div>
+
+</div>
+
+<script src="zzz.js"></script>
+<script>
+(function() {
+    // Sidebar toggle
+    var side = document.getElementById('side');
+    var sbTog = document.getElementById('sbTog');
+    var sbOv = document.getElementById('sbOv');
+
+    sbTog.addEventListener('click', function() {
+        side.classList.toggle('open');
+        sbOv.classList.toggle('show');
+    });
+    sbOv.addEventListener('click', function() {
+        side.classList.remove('open');
+        sbOv.classList.remove('show');
+    });
+
+    // Sidebar accordion
+    var heads = document.querySelectorAll('.sb-hd');
+    for (var i = 0; i < heads.length; i++) {
+        heads[i].addEventListener('click', function() {
+            var tid = this.getAttribute('data-t');
+            var body = document.getElementById(tid);
+            if (body) {
+                this.classList.toggle('open');
+                body.classList.toggle('open');
+            }
+        });
+    }
+
+    // Lesson scroll reveal
+    var lessons = document.querySelectorAll('.lesson');
+    var contentEl = document.getElementById('lessonContent');
+
+    function checkReveal() {
+        for (var i = 0; i < lessons.length; i++) {
+            var rect = lessons[i].getBoundingClientRect();
+            var cRect = contentEl.getBoundingClientRect();
+            if (rect.top < cRect.bottom - 60) {
+                lessons[i].classList.add('vis');
+            }
+        }
+    }
+    contentEl.addEventListener('scroll', checkReveal);
+    // Initial check
+    setTimeout(checkReveal, 100);
+    setTimeout(checkReveal, 400);
+
+    // Right terminal
+    var rtOut = document.getElementById('rtOut');
+    var rtIn = document.getElementById('rtIn');
+    var buf = [];
+    var hist = [];
+    var hIdx = -1;
+
+    function tp(text, cls) {
+        var d = document.createElement('div');
+        d.textContent = text;
+        if (cls) d.className = cls;
+        rtOut.appendChild(d);
+        rtOut.scrollTop = rtOut.scrollHeight;
+    }
+
+    function runBuf() {
+        if (buf.length === 0) { tp('(nothing to run)', 't-dim'); return; }
+        try {
+            var res = interpret(buf.join('\n'));
+            if (res.length === 0) tp('(silent program)', 't-dim');
+            else for (var i = 0; i < res.length; i++) tp(res[i], 't-out');
+        } catch (e) { tp(e.message, 't-err'); }
+        buf.length = 0;
+    }
+
+    // Initial message
+    tp('zzz learn terminal', 't-dim');
+    tp('click "try in terminal" on any lesson.', 't-dim');
+    tp('then type "run" to execute.', 't-dim');
+    tp('', 't-dim');
+
+    rtIn.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            var val = rtIn.value;
+            rtIn.value = '';
+            hist.push(val);
+            hIdx = hist.length;
+            tp('zzz > ' + val, 't-echo');
+            var cmd = val.trim().toLowerCase();
+            if (cmd === 'run') { runBuf(); }
+            else if (cmd === 'clear') { clearRT(); }
+            else if (cmd === 'reset') { buf.length = 0; tp('(buffer cleared)', 't-dim'); }
+            else if (cmd === 'help') {
+                var h = ['  run     execute code','  clear   clear terminal','  reset   clear buffer','','  rest is zzz code.'];
+                for (var i = 0; i < h.length; i++) tp(h[i], 't-dim');
+            }
+            else { buf.push(val); }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (hIdx > 0) { hIdx--; rtIn.value = hist[hIdx]; }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (hIdx < hist.length - 1) { hIdx++; rtIn.value = hist[hIdx]; }
+            else { hIdx = hist.length; rtIn.value = ''; }
+        }
+    });
+
+    window.clearRT = function() {
+        rtOut.innerHTML = '';
+        buf.length = 0;
+    };
+
+    window.loadLesson = function(btn) {
+        var lesson = btn.closest('.lesson');
+        var code = lesson.getAttribute('data-code');
+        if (!code) return;
+        clearRT();
+        tp('--- loaded example ---', 't-dim');
+        var lines = code.split('\n');
+        for (var i = 0; i < lines.length; i++) tp(lines[i], 't-echo');
+        tp('--- type "run" to execute ---', 't-dim');
+        tp('', 't-dim');
+        buf.length = 0;
+        for (var i = 0; i < lines.length; i++) buf.push(lines[i]);
+        rtIn.focus();
+    };
+})();
+</script>
+</body>
+</html>
