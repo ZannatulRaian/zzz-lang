@@ -134,7 +134,7 @@ nap
 Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/zzz-lang.git
+git clone https://github.com/ZannatulRaian/zzz-lang.git
 ```
 
 Open:
@@ -176,9 +176,7 @@ Since zzz is a static website, no build process is required.
 
 ## Live Demo
 
-```bash
-https://zzz-lang.netlify.app/
-```
+🌐 [Try zzz Language](https://zzz-lang.netlify.app/)
 
 ## License
 
