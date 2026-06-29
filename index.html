@@ -23,7 +23,42 @@
             --lavender: #b8a9d4;
             --red: #c75050;
             --code-bg: #0a090f;
+            --nav-bg: rgba(8,7,11,0.72);
         }
+        html.light {
+            --bg: #ffffff;
+            --bg2: #f4f4f6;
+            --card: #ffffff;
+            --border: #e2e2e6;
+            --fg: #111118;
+            --muted: #777788;
+            --accent: #b8751f;
+            --accent-dim: rgba(184,117,31,0.08);
+            --accent-mid: rgba(184,117,31,0.16);
+            --green: #3a8a68;
+            --lavender: #6b5a9a;
+            --red: #b03030;
+            --code-bg: #f4f4f6;
+            --nav-bg: rgba(255,255,255,0.82);
+        }
+
+        /* Theme toggle button */
+        .theme-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 5px 12px;
+            color: var(--muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.3s, border-color 0.3s;
+            font-family: 'DM Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .theme-btn:hover { color: var(--fg); border-color: var(--accent); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body {
@@ -153,6 +188,13 @@
         .sc { color: var(--muted); font-style: italic; }
         .sv { color: var(--fg); }
         .so { color: #d4836a; }
+
+        /* Light mode overrides */
+        html.light .grain { opacity: 0.012; }
+        html.light .ed-area { background: var(--code-bg); color: var(--fg); }
+        html.light .ctbl tr:hover td { background: rgba(184,117,31,0.04); }
+        html.light .feat:hover { border-color: rgba(184,117,31,0.28); }
+        html.light .toast { box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
 
         /* Reveal on scroll */
         .rv {
@@ -297,7 +339,7 @@
 </svg>
 
 <!-- Nav -->
-<nav style="position:fixed;top:0;left:0;right:0;z-index:100;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(8,7,11,0.72);border-bottom:1px solid var(--border)">
+<nav style="position:fixed;top:0;left:0;right:0;z-index:100;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:var(--nav-bg);border-bottom:1px solid var(--border)">
     <div style="max-width:1100px;margin:0 auto;padding:15px 24px;display:flex;align-items:center;justify-content:space-between">
         <a href="index.html" style="text-decoration:none">
             <span class="serif" style="font-size:1.35rem;color:var(--accent);letter-spacing:-0.02em">zzz</span>
@@ -308,7 +350,9 @@
             <a href="#try" class="nav-link">Try it</a>
             <a href="terminal.html" class="nav-link">Terminal</a>
             <a href="learn.html" class="nav-link">Learn</a>
-            <a href="docs.html" class="nav-link">Docs</a>
+            <button class="theme-btn" id="themeBtnNav" onclick="toggleTheme()" aria-label="Toggle theme">
+                <i class="fa-solid fa-sun" id="themeIconNav"></i><span id="themeLabelNav">Light</span>
+            </button>
         </div>
     </div>
 </nav>
@@ -335,12 +379,12 @@
         </div>
 
         <div id="heroInst" style="display:inline-flex;align-items:center;gap:10px;opacity:0;transform:translateY(16px);transition:all 1s ease 2.6s">
-            <a href="terminal.html" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;background:var(--accent);color:var(--bg);text-decoration:none;font-size:13px;font-weight:600;transition:filter 0.2s" onmouseover="this.style.filter='brightness(1.12)'" onmouseout="this.style.filter='none'">
-                <i class="fa-solid fa-terminal" style="font-size:12px"></i> open terminal
-            </a>
-            <a href="learn.html" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--muted);text-decoration:none;font-size:13px;transition:all 0.2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-                learn the language
-            </a>
+            <div class="mono" style="font-size:13px;padding:10px 18px;border-radius:8px;background:var(--code-bg);border:1px solid var(--border)">
+                <span style="color:var(--muted)">$</span> npm i -g <span style="color:var(--accent)">zzz-lang</span>
+            </div>
+            <button onclick="copyCmd()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--muted);cursor:pointer;transition:all 0.3s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'" aria-label="Copy command">
+                <i class="fa-regular fa-copy" style="font-size:13px"></i>
+            </button>
         </div>
     </div>
 
@@ -354,7 +398,7 @@
 <section style="padding:120px 24px">
     <div class="rv" style="max-width:680px;margin:0 auto">
         <p class="serif" style="font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.45;color:var(--fg);font-weight:400">
-            I looked at modern programming languages and thought&mdash;<em style="color:var(--accent)">that&rsquo;s a lot of typing</em>. So I've built one where the keywords sound like someone half-asleep on a couch. Because that&rsquo;s who I'm building for.
+            I looked at modern programming languages and thought&mdash;<em style="color:var(--accent)">that&rsquo;s a lot of typing</em>. So I built one where the keywords sound like someone half-asleep on a couch. Because that&rsquo;s who I&rsquo;m building for.
         </p>
         <div class="divider" style="margin-top:64px"></div>
     </div>
@@ -438,7 +482,7 @@
     <div class="rv" style="max-width:1100px;margin:0 auto">
         <span style="font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:20px">Interactive</span>
         <h2 class="serif" style="font-size:clamp(2rem,5vw,3.2rem);margin-bottom:12px;line-height:1.1">Try it. If you feel like it.</h2>
-        <p style="color:var(--muted);margin-bottom:32px;font-size:0.95rem">No setup. No install. Just type and hit run. Or don&rsquo;t. I'm not your boss.</p>
+        <p style="color:var(--muted);margin-bottom:32px;font-size:0.95rem">No setup. No install. Just type and hit run. Or don&rsquo;t. I&rsquo;m not your boss.</p>
 
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px">
             <button class="chip" data-ex="hello">hello</button>
@@ -513,16 +557,16 @@ nap</textarea>
     <div class="rv" style="max-width:600px;margin:0 auto;position:relative">
         <div style="position:absolute;width:500px;height:300px;background:radial-gradient(ellipse,rgba(212,148,58,0.04),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);filter:blur(60px);pointer-events:none"></div>
         <h2 class="serif" style="font-size:clamp(2.2rem,6vw,3.6rem);line-height:1.05;margin-bottom:20px;position:relative">
-            Nothing to install.<br><span style="color:var(--accent)">Just open and type.</span>
+            Too tired to install?<br><span style="color:var(--accent)">Fair enough.</span>
         </h2>
-        <p style="color:var(--muted);margin-bottom:36px;font-size:0.95rem;position:relative;max-width:420px;margin-left:auto;margin-right:auto">zzz runs entirely in the browser. No npm, no Node, no terminal&nbsp;— unless you count the one we built for you.</p>
+        <p style="color:var(--muted);margin-bottom:36px;font-size:0.95rem;position:relative">But if you change your mind, it&rsquo;s just one command. I believe in you. Sort of.</p>
         <div style="position:relative;display:inline-flex;align-items:center;gap:10px">
-            <a href="terminal.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:10px;background:var(--accent);color:var(--bg);text-decoration:none;font-size:14px;font-weight:600;transition:filter 0.2s" onmouseover="this.style.filter='brightness(1.12)'" onmouseout="this.style.filter='none'">
-                <i class="fa-solid fa-terminal" style="font-size:13px"></i> open terminal
-            </a>
-            <a href="docs.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:10px;background:none;border:1px solid var(--border);color:var(--muted);text-decoration:none;font-size:14px;transition:all 0.2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--fg)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-                read the docs
-            </a>
+            <div class="mono" style="font-size:14px;padding:12px 22px;border-radius:10px;background:var(--code-bg);border:1px solid var(--border)">
+                <span style="color:var(--muted)">$</span> npm i -g <span style="color:var(--accent)">zzz-lang</span>
+            </div>
+            <button onclick="copyCmd()" style="background:var(--accent);border:none;border-radius:10px;padding:12px 14px;color:var(--bg);cursor:pointer;transition:all 0.3s" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter='none'" aria-label="Copy">
+                <i class="fa-regular fa-copy"></i>
+            </button>
         </div>
     </div>
 </section>
@@ -591,6 +635,13 @@ var rvObs = new IntersectionObserver(function(entries) {
     });
 }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 rvEls.forEach(function(el) { rvObs.observe(el); });
+
+// Copy install command
+function copyCmd() {
+    navigator.clipboard.writeText('npm i -g zzz-lang').then(function() {
+        toast('copied. now you have to paste it yourself.');
+    });
+}
 
 // Toast notification
 function toast(msg) {
@@ -666,6 +717,22 @@ document.addEventListener('mousemove', function(e) {
     var g = document.querySelector('.hero-glow');
     if (g) g.style.transform = 'translate(calc(-50% + ' + x + 'px), calc(-50% + ' + y + 'px))';
 });
+</script>
+<script>
+// Theme toggle — shared across all pages via localStorage
+function applyTheme(light) {
+    document.documentElement.classList.toggle('light', light);
+    var icon = document.getElementById('themeIconNav');
+    var label = document.getElementById('themeLabelNav');
+    if (icon) icon.className = light ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    if (label) label.textContent = light ? 'Dark' : 'Light';
+}
+function toggleTheme() {
+    var isLight = !document.documentElement.classList.contains('light');
+    localStorage.setItem('zzz-theme', isLight ? 'light' : 'dark');
+    applyTheme(isLight);
+}
+(function() { applyTheme(localStorage.getItem('zzz-theme') === 'light'); })();
 </script>
 </body>
 </html>

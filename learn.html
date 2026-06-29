@@ -22,7 +22,43 @@
             --red: #c75050;
             --code-bg: #0e0d16;
             --dim: #45425a;
+            --topbar-bg: #131220;
         }
+        html.light {
+            --bg: #ffffff;
+            --bg2: #f4f4f6;
+            --card: #ffffff;
+            --border: #e2e2e6;
+            --fg: #111118;
+            --muted: #777788;
+            --accent: #b8751f;
+            --accent-dim: rgba(184,117,31,0.08);
+            --accent-mid: rgba(184,117,31,0.16);
+            --green: #3a8a68;
+            --lavender: #6b5a9a;
+            --red: #b03030;
+            --code-bg: #f4f4f6;
+            --dim: #b0b0be;
+            --topbar-bg: #f4f4f6;
+        }
+
+        /* Theme toggle button */
+        .theme-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 4px 10px;
+            color: var(--muted);
+            font-size: 11px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        .theme-btn:hover { color: var(--fg); border-color: var(--accent); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body {
@@ -49,7 +85,7 @@
             justify-content: space-between;
             padding: 0 20px;
             flex-shrink: 0;
-            background: #131220;
+            background: var(--topbar-bg);
             z-index: 50;
         }
         .topbar a {
@@ -337,6 +373,9 @@
     <div style="display:flex;align-items:center;gap:20px">
         <a href="index.html">home</a>
         <a href="terminal.html">terminal</a>
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle theme">
+            <i class="fa-solid fa-sun" id="themeIcon"></i><span id="themeLabel">Light</span>
+        </button>
     </div>
 </div>
 
@@ -690,6 +729,21 @@
         rtIn.focus();
     };
 })();
+</script>
+<script>
+function applyTheme(light) {
+    document.documentElement.classList.toggle('light', light);
+    var icon = document.getElementById('themeIcon');
+    var label = document.getElementById('themeLabel');
+    if (icon) icon.className = light ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    if (label) label.textContent = light ? 'Dark' : 'Light';
+}
+function toggleTheme() {
+    var isLight = !document.documentElement.classList.contains('light');
+    localStorage.setItem('zzz-theme', isLight ? 'light' : 'dark');
+    applyTheme(isLight);
+}
+(function() { applyTheme(localStorage.getItem('zzz-theme') === 'light'); })();
 </script>
 </body>
 </html>
