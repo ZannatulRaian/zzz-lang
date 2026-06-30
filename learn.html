@@ -98,7 +98,7 @@
         .topbar .on { color: var(--accent); }
 
         /* Layout */
-        .layout { flex: 1; display: flex; overflow: hidden; }
+        .layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
         /* Sidebar */
         .side {
@@ -254,6 +254,7 @@
             display: flex;
             flex-direction: column;
             background: var(--bg2);
+            min-height: 0;
         }
         .rterm-bar {
             padding: 10px 14px;
@@ -270,6 +271,7 @@
             letter-spacing: 0.08em;
             font-weight: 600;
         }
+        .rterm-bar-btns { display: flex; gap: 6px; align-items: center; }
         .rterm-bar button {
             background: none;
             border: 1px solid var(--border);
@@ -279,9 +281,42 @@
             font-size: 10px;
             cursor: pointer;
             font-family: 'DM Sans', sans-serif;
-            transition: color 0.2s;
+            transition: color 0.2s, border-color 0.2s;
         }
-        .rterm-bar button:hover { color: var(--fg); }
+        .rterm-bar button:hover { color: var(--fg); border-color: var(--accent); }
+
+        /* Editor section (top half) */
+        .rterm-editor-wrap {
+            flex: 1 1 50%;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            border-bottom: 1px solid var(--border);
+        }
+        #rtEditor {
+            flex: 1;
+            width: 100%;
+            resize: none;
+            border: none;
+            outline: none;
+            background: var(--bg2);
+            color: var(--fg);
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.7;
+            padding: 12px 14px;
+            caret-color: var(--accent);
+            tab-size: 2;
+        }
+        #rtEditor::placeholder { color: var(--dim); }
+
+        /* Output section (bottom half) */
+        .rterm-out-wrap {
+            flex: 1 1 50%;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
         .rterm-out {
             flex: 1;
             overflow-y: auto;
@@ -290,31 +325,34 @@
             font-size: 12px;
             line-height: 1.85;
         }
-        .rterm-in {
+
+        .rterm-runbar {
             display: flex;
             align-items: center;
-            padding: 10px 14px 14px;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 14px 12px;
             border-top: 1px solid var(--border);
             flex-shrink: 0;
         }
-        .rterm-pr {
-            color: var(--accent);
-            font-family: 'Fira Code', monospace;
-            font-size: 12px;
-            user-select: none;
-        }
-        .rterm-in input {
-            flex: 1;
-            background: none;
+        .rterm-run-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
             border: none;
-            outline: none;
-            color: var(--fg);
-            font-family: 'Fira Code', monospace;
+            border-radius: 7px;
+            padding: 7px 14px;
+            color: var(--bg2);
+            font-family: 'DM Sans', sans-serif;
             font-size: 12px;
-            caret-color: var(--accent);
-            padding: 0;
-            margin-left: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: filter 0.2s;
         }
+        .rterm-run-btn:hover { filter: brightness(1.12); }
+        .rterm-hint { font-size: 10px; color: var(--dim); font-family: 'Fira Code', monospace; white-space: nowrap; }
+
         .t-echo { color: var(--muted); }
         .t-out { color: var(--green); }
         .t-err { color: var(--red); }
@@ -592,13 +630,31 @@
     <!-- Right terminal -->
     <div class="rterm" id="rterm">
         <div class="rterm-bar">
-            <span>Terminal</span>
-            <button onclick="clearRT()">clear</button>
+            <span>Editor</span>
+            <div class="rterm-bar-btns">
+                <button id="rtClearEditor"><i class="fa-solid fa-eraser" style="margin-right:3px"></i>Clear</button>
+            </div>
         </div>
-        <div class="rterm-out" id="rtOut"></div>
-        <div class="rterm-in">
-            <span class="rterm-pr">zzz &gt;</span>
-            <input type="text" id="rtIn" autocomplete="off" spellcheck="false" aria-label="Run terminal">
+        <div class="rterm-editor-wrap">
+            <textarea id="rtEditor" class="mono" spellcheck="false" autocomplete="off" aria-label="Lesson code editor" placeholder="zzz
+
+yawn &quot;hello world&quot;
+
+nap"></textarea>
+            <div class="rterm-runbar">
+                <button class="rterm-run-btn" id="rtRunBtn"><i class="fa-solid fa-play" style="font-size:10px"></i>Run</button>
+                <span class="rterm-hint">Ctrl/Cmd+Enter</span>
+            </div>
+        </div>
+        <div class="rterm-out-wrap">
+            <div class="rterm-bar" style="border-top:1px solid var(--border)">
+                <span>Output</span>
+                <div class="rterm-bar-btns">
+                    <span class="rterm-hint" id="rtRunTime"></span>
+                    <button onclick="clearRT()">Clear</button>
+                </div>
+            </div>
+            <div class="rterm-out" id="rtOut"></div>
         </div>
     </div>
 
@@ -654,10 +710,8 @@
 
     // Right terminal
     var rtOut = document.getElementById('rtOut');
-    var rtIn = document.getElementById('rtIn');
-    var buf = [];
-    var hist = [];
-    var hIdx = -1;
+    var rtEditor = document.getElementById('rtEditor');
+    var rtRunTime = document.getElementById('rtRunTime');
 
     function tp(text, cls) {
         var d = document.createElement('div');
@@ -667,66 +721,70 @@
         rtOut.scrollTop = rtOut.scrollHeight;
     }
 
-    function runBuf() {
-        if (buf.length === 0) { tp('(nothing to run)', 't-dim'); return; }
+    function runRT() {
+        var src = rtEditor.value;
+        rtOut.innerHTML = '';
+        rtRunTime.textContent = '';
+        if (!src.trim()) {
+            tp('(nothing to run... write some code first)', 't-dim');
+            return;
+        }
+        var t0 = performance.now();
         try {
-            var res = interpret(buf.join('\n'));
+            var res = interpret(src);
+            var ms = (performance.now() - t0).toFixed(2);
             if (res.length === 0) tp('(silent program)', 't-dim');
             else for (var i = 0; i < res.length; i++) tp(res[i], 't-out');
-        } catch (e) { tp(e.message, 't-err'); }
-        buf.length = 0;
+            rtRunTime.textContent = ms + 'ms';
+        } catch (e) {
+            var ms2 = (performance.now() - t0).toFixed(2);
+            tp(e.message, 't-err');
+            rtRunTime.textContent = ms2 + 'ms';
+        }
     }
 
     // Initial message
     tp('zzz learn terminal', 't-dim');
-    tp('click "try in terminal" on any lesson.', 't-dim');
-    tp('then type "run" to execute.', 't-dim');
+    tp('click "try in terminal" on any lesson,', 't-dim');
+    tp('or write your own code above.', 't-dim');
+    tp('then hit Run.', 't-dim');
     tp('', 't-dim');
 
-    rtIn.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            var val = rtIn.value;
-            rtIn.value = '';
-            hist.push(val);
-            hIdx = hist.length;
-            tp('zzz > ' + val, 't-echo');
-            var cmd = val.trim().toLowerCase();
-            if (cmd === 'run') { runBuf(); }
-            else if (cmd === 'clear') { clearRT(); }
-            else if (cmd === 'reset') { buf.length = 0; tp('(buffer cleared)', 't-dim'); }
-            else if (cmd === 'help') {
-                var h = ['  run     execute code','  clear   clear terminal','  reset   clear buffer','','  rest is zzz code.'];
-                for (var i = 0; i < h.length; i++) tp(h[i], 't-dim');
-            }
-            else { buf.push(val); }
-        } else if (e.key === 'ArrowUp') {
+    document.getElementById('rtRunBtn').addEventListener('click', runRT);
+    document.getElementById('rtClearEditor').addEventListener('click', function() {
+        rtEditor.value = '';
+        rtEditor.focus();
+    });
+
+    rtEditor.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
-            if (hIdx > 0) { hIdx--; rtIn.value = hist[hIdx]; }
-        } else if (e.key === 'ArrowDown') {
+            runRT();
+        }
+        if (e.key === 'Tab') {
             e.preventDefault();
-            if (hIdx < hist.length - 1) { hIdx++; rtIn.value = hist[hIdx]; }
-            else { hIdx = hist.length; rtIn.value = ''; }
+            var s = rtEditor.selectionStart, en = rtEditor.selectionEnd;
+            rtEditor.value = rtEditor.value.substring(0, s) + '  ' + rtEditor.value.substring(en);
+            rtEditor.selectionStart = rtEditor.selectionEnd = s + 2;
         }
     });
 
     window.clearRT = function() {
         rtOut.innerHTML = '';
-        buf.length = 0;
+        rtRunTime.textContent = '';
     };
 
     window.loadLesson = function(btn) {
         var lesson = btn.closest('.lesson');
         var code = lesson.getAttribute('data-code');
         if (!code) return;
+        rtEditor.value = code;
         clearRT();
-        tp('--- loaded example ---', 't-dim');
-        var lines = code.split('\n');
-        for (var i = 0; i < lines.length; i++) tp(lines[i], 't-echo');
-        tp('--- type "run" to execute ---', 't-dim');
+        tp('--- example loaded above ---', 't-dim');
+        tp('--- hit Run or Ctrl/Cmd+Enter ---', 't-dim');
         tp('', 't-dim');
-        buf.length = 0;
-        for (var i = 0; i < lines.length; i++) buf.push(lines[i]);
-        rtIn.focus();
+        rtEditor.focus();
+        rtEditor.setSelectionRange(rtEditor.value.length, rtEditor.value.length);
     };
 })();
 </script>
